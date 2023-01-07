@@ -24,13 +24,13 @@ class Ping:
         self.timeout = timeout
         self.interval = interval
 
-    def _send_syn(self) -> Optional[Packet]:
-        packet = IP(dst=self.ip) / TCP(dport=self.port, flags="S")
+    def _send_syn(self, seq: int) -> Optional[Packet]:
+        packet = IP(dst=self.ip) / TCP(dport=self.port, flags="S", seq=seq)
         return sr1(packet, timeout=self.timeout, verbose=0)
 
     def ping(self, itr_count: Optional[int] = None) -> Iterator[PingResponse]:
-        for seq in count(1):
-            packet = self._send_syn()
+        for seq in count(0, 1):
+            packet = self._send_syn(seq)
             if _is_rst_response(packet):
                 raise ConnectionRefusedError
             if packet:
